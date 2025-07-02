@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to posts for all users
+    match /posts/{document} {
+      allow read, write: if true;
+    }
+    
+    // Allow read/write access to users collection for authenticated users
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow read access to payments for the user who created them
+    match /payments/{document} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || request.auth.uid == request.resource.data.userId);
+    }
+    
+    // Allow read access to stats for all users
+    match /stats/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
